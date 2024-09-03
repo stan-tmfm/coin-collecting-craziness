@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Play Coin Collecting Craziness - a game made 1% by Stan 99% by ChatGPT.">
+    <title>Coin Collecting Craziness</title>
+    <link rel="icon" href="https://t4.ftcdn.net/jpg/07/83/54/05/240_F_783540572_6Ic9Cut7lvlvvPjWXV8YblexY1Jd4Ywm.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <br><h1 id="ccc">Coin Collecting Craziness</h1>
+        <button id="change-track-button">Change Track</button>
+        <button id="settings-button">Settings</button>
+        <div id="coin-counter">Coins: 0</div>
+        <div id="spawn-rate"> Coin Spawn Rate: 1s</div>
+        <div class="coin-platform" id="coin-platform">
+            <!-- Coins will be dynamically added here -->
+        </div>
+        <div class="upgrades">
+            <h2>Upgrades</h2>
+            <button class="test-button" id="test-button">10x coin multi [testing]</button>
+            <button class="upgrade-button" id="spawn-rate-upgrade">Reduce Spawn Rate (Cost: 1e9 Coins)</button>
+            <button class="upgrade-button" id="coin-multiplier-upgrade">Increase Coin Multiplier (Cost: 10 Coins)</button>
+            <button class="upgrade-button" id="magnet-upgrade">Buy Coin Magnet (Cost: 100 Coins)</button>
+        </div>
+    </div>
+    <!-- Settings Menu -->
+    <div id="settings-overlay" class="settings-overlay">
+        <div class="settings-content">
+            <h2>Settings</h2>
+            <label><input type="checkbox" id="music-checkbox" checked> Music</label><br>
+            <label><input type="checkbox" id="scientific-notation-checkbox"> Scientific Notation</label><br><br>
+            <button class="close-settings" id="close-settings">Close</button>
+        </div>
+    </div>
+    <audio id="background-music" preload="auto">
+        <source src="DEAF KEV - Invincible  Glitch Hop  NCS - Copyright Free Music.mp3" type="audio/mpeg">
+        <source src="Different Heaven & EH!DE - My Heart  Drumstep  NCS - Copyright Free Music.mp3" type="audio/mpeg">
+        <source src="Elektronomia - Sky High  Progressive House  NCS - Copyright Free Music.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
