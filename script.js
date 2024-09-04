@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Elements for Coin Counter
     const coinCounter = document.getElementById('coin-counter');
     const spawnRateDisplay = document.getElementById('spawn-rate');
+    const platformCapacityDisplay = document.getElementById('platform-capacity');
     const spawnRateUpgradeButton = document.getElementById('spawn-rate-upgrade');
     const coinMultiplierUpgradeButton = document.getElementById('coin-multiplier-upgrade');
     const coinPlatform = document.getElementById('coin-platform');
@@ -12,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const music = document.getElementById('background-music');
     const musicCheckbox = document.getElementById('music-checkbox');
 
+    // Constants and Initial Values
     const maxCoins = 100; // Max capacity of the coin platform
     let coinCount = 0; // Total coins collected
     let spawnRate = 1; // Base spawn rate (coins per second)
@@ -21,13 +24,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const maxUpgradeLevel = 9; // Maximum upgrade levels
     const baseUpgradeCost = 1e9; // Base cost of the upgrade
 
+    // Platform Capacity
+    let currentPlatformCapacity = 100; // Initial platform capacity
+
     // Track list
     const tracks = [
         'DEAF KEV - Invincible  Glitch Hop  NCS - Copyright Free Music.mp3',
         'Different Heaven & EH!DE - My Heart  Drumstep  NCS - Copyright Free Music.mp3',
-        'Elektronomia - Sky High  Progressive House  NCS - Copyright Free Music.mp3'
+        'Elektronomia - Sky High  Progressive House  NCS - Copyright Free Music.mp3',
+        'Disfigure - Blank  Melodic Dubstep  NCS - Copyright Free Music.mp3',
+        'Different Heaven - Nekozilla  Electro  NCS - Copyright Free Music.mp3',
+        'Jim Yosef - Firefly  Progressive House  NCS - Copyright Free Music.mp3',
+        'Desmeon - Hellcat  Drumstep  NCS - Copyright Free Music.mp3',
+        'JPB - High  Trap  NCS - Copyright Free Music.mp3',
+        'K-391 - Earth  Drumstep  NCS - Copyright Free Music.mp3',
+        'Jim Yosef & Anna Yvette - Linked  House  NCS - Copyright Free Music.mp3',
+        'LFZ - Popsicle  House  NCS - Copyright Free Music.mp3',
+        'Jim Yosef - Eclipse  House  NCS - Copyright Free Music.mp3',
+        'Electro-Light - Symbolism  Trap  NCS - Copyright Free Music.mp3',
+        'Cartoon, Jéja - On & On (feat. Daniel Levi)  Electronic Pop  NCS - Copyright Free Music.mp3',
+        'Julius Dreisig & Zeus X Crona - Invisible  Trap  NCS - Copyright Free Music.mp3',
+        'Killercats - Tell Me (feat. Alex Skrindo)  Future Bass  NCS - Copyright Free Music.mp3',
+        'Distrion & Alex Skrindo - Entropy  House  NCS - Copyright Free Music.mp3',
+        'Distrion & Electro-Light - Rubik  House  NCS - Copyright Free Music.mp3',
+        'Lensko - Lets Go!  House  NCS - Copyright Free Music.mp3',
+        'Kovan & Electro-Light - Skyline  House  NCS - Copyright Free Music.mp3'
     ];
 
+    let shuffledTracks = [...tracks]; // Create a copy of the tracks array
     let currentTrackIndex = 0;
     let spawnIntervalId;
 
@@ -36,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (number >= 1e3 && number < 1e6) return number.toLocaleString(); // Between 1000 and 1e6, use commas
 
         const suffixes = [
-            { value: 1e303, suffix: 'NoNg' },
+            { value: 1e303, suffix: 'Ce' },
             { value: 1e300, suffix: 'NoNg' },
             { value: 1e270, suffix: 'Ng' },
             { value: 1e243, suffix: 'Og' },
@@ -47,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { value: 1e93, suffix: 'Tg' },
             { value: 1e63, suffix: 'Vt' },
             { value: 1e33, suffix: 'De' },
+            { value: 1e30, suffix: 'No' },
             { value: 1e27, suffix: 'Oc' },
             { value: 1e24, suffix: 'Sp' },
             { value: 1e21, suffix: 'Sx' },
@@ -55,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
             { value: 1e12, suffix: 'T' },
             { value: 1e9, suffix: 'B' },
             { value: 1e6, suffix: 'M' },
-            { value: 1e3, suffix: 'k' }
         ];
 
         for (const { value, suffix } of suffixes) {
@@ -69,20 +93,35 @@ document.addEventListener('DOMContentLoaded', () => {
         coinCounter.textContent = `Coins: ${formatNumber(coinCount)}`;
     }
 
-    function updateSpawnRate() {
-        clearInterval(spawnIntervalId); // Clear the existing interval
-        spawnInterval = Math.max(100, 1000 / (spawnRate + upgradeLevel * 0.1)); // Adjust spawn interval based on upgrade level
+     function updatePlatformCapacity() {
+        const coinCountOnPlatform = coinPlatform.children.length;
+        platformCapacityDisplay.textContent = `Platform Capacity: ${coinCountOnPlatform}/${currentPlatformCapacity}`;
 
-        const coinsPerSecond = (1000 / spawnInterval).toFixed(1);
-        spawnRateDisplay.textContent = `Coin Spawn Rate: 1 per ${coinsPerSecond}s`;
-        console.log(`Updated spawnInterval to: ${spawnInterval}`);
-
-        // Start the new interval
-        spawnIntervalId = setInterval(spawnCoin, spawnInterval);
+        // Change text color and boldness based on platform capacity
+        if (coinCountOnPlatform >= currentPlatformCapacity) {
+            platformCapacityDisplay.style.color = 'red';
+            platformCapacityDisplay.style.fontWeight = 'bold';
+        } else {
+            platformCapacityDisplay.style.color = 'black';
+            platformCapacityDisplay.style.fontWeight = 'normal';
+        }
     }
 
+    function updateSpawnRate() {
+    clearInterval(spawnIntervalId); // Clear the existing interval
+    // Calculate the spawn interval, ensuring it doesn't go below 0.1s
+    spawnInterval = Math.max(100, 1000 - (upgradeLevel * 100)); 
+
+    // Update the spawn rate display
+    const displaySpawnInterval = (spawnInterval / 1000).toFixed(1);
+    spawnRateDisplay.textContent = `Coin Spawn Rate: 1 per ${displaySpawnInterval}s`;
+
+    // Start the new interval
+    spawnIntervalId = setInterval(spawnCoin, spawnInterval);
+}
+
     function spawnCoin() {
-        if (coinPlatform.children.length >= maxCoins) {
+        if (coinPlatform.children.length >= currentPlatformCapacity) {
             console.log('Coin platform is full.');
             return; // Stop spawning if platform is full
         }
@@ -101,10 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
             coin.remove();
             coinCount += coinMultiplier; // Apply multiplier to coin gain
             updateCoinCounter();
+            updatePlatformCapacity(); // Update platform capacity display
         });
 
         coinPlatform.appendChild(coin);
-        console.log('Coin spawned at:', x, y);
+        updatePlatformCapacity(); // Update platform capacity display
     }
 
     function handleUpgrade() {
@@ -116,16 +156,27 @@ document.addEventListener('DOMContentLoaded', () => {
             upgradeLevel++;
             updateSpawnRate();
             updateCoinCounter();
-            spawnRateUpgradeButton.textContent = `Reduce Spawn Rate (Cost: ${formatNumber(baseUpgradeCost * Math.pow(2, upgradeLevel))})`;
+            spawnRateUpgradeButton.textContent = `Increase Coin Spawn Speed (Cost: ${formatNumber(baseUpgradeCost * Math.pow(2, upgradeLevel))} Coins)`;
         } else {
             alert("Not enough coins or maximum level reached.");
         }
     }
 
     function increaseCoinMultiplier() {
-        coinMultiplier *= 10; // Increase coin multiplier by 10x
+        if (coinCount >= 1e6) {
+            coinCount -= 1e6;
+            coinMultiplier *= 10; // Increase coin multiplier by 10x
+            updateCoinCounter();
+            coinMultiplierUpgradeButton.textContent = `Increase Coin Multi by 10x Compounding [for testing purposes] (x${coinMultiplier})`;
+        } else {
+            alert("Not enough coins to increase multiplier.");
+        }
+    }
+
+    function increaseCoinsExponentially() {
+        coinMultiplier *= 10; // Multiply coin gain by 10x
         updateCoinCounter();
-        coinMultiplierUpgradeButton.textContent = `Increase Coin Gain (x10) [Current Multiplier: ${coinMultiplier}] [Testing]`;
+        testButton.textContent = `Increase Coin Multi by 10x Compounding [for testing purposes] (x${coinMultiplier})`;
     }
 
     function toggleSettingsMenu() {
@@ -136,68 +187,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]]; // Swap elements
-        }
+    function changeTrack() {
+        currentTrackIndex = (currentTrackIndex + 1) % shuffledTracks.length;
+        music.src = shuffledTracks[currentTrackIndex];
+        music.play();
     }
 
-    // Shuffle the tracks array
-    shuffleArray(tracks);
-
-    function playNextTrack() {
-        currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
-        music.src = tracks[currentTrackIndex];
-        music.play().catch((error) => {
-            console.error('Error playing audio:', error);
-        });
-    }
-
-    function startMusic() {
+    function toggleMusic() {
         if (musicCheckbox.checked) {
-            music.src = tracks[currentTrackIndex];
-            music.play().catch((error) => {
-                console.error('Error playing audio:', error);
-            });
-        }
-    }
-
-    function updateMusicPlayback() {
-        if (musicCheckbox.checked) {
-            startMusic();
+            music.play();
         } else {
             music.pause();
-            music.src = ''; // Reset source to stop playback completely
         }
     }
 
-    function changeTrack() {
-        playNextTrack();
-    }
-
-    // Initialize music playback
-    updateMusicPlayback();
-
-    // Event listeners
-    musicCheckbox.addEventListener('change', updateMusicPlayback);
-    changeTrackButton.addEventListener('click', changeTrack);
-
-    // Initial setup
-    updateSpawnRate();
-    updateCoinCounter();
+    // Event Listeners
     spawnRateUpgradeButton.addEventListener('click', handleUpgrade);
     coinMultiplierUpgradeButton.addEventListener('click', increaseCoinMultiplier);
-
-    // Testing button functionality
-    testButton.addEventListener('click', () => {
-        coinMultiplier *= 10;
-        updateCoinCounter();
-    });
-
-    // Settings menu functionality
+    testButton.addEventListener('click', increaseCoinsExponentially);
     settingsButton.addEventListener('click', toggleSettingsMenu);
-    closeSettingsButton.addEventListener('click', () => {
-        settingsOverlay.style.display = 'none'; // Hide the settings menu
-    });
+    closeSettingsButton.addEventListener('click', toggleSettingsMenu);
+    changeTrackButton.addEventListener('click', changeTrack);
+    musicCheckbox.addEventListener('change', toggleMusic);
+
+    // Initialize
+    updateCoinCounter();
+    updateSpawnRate();
+    updatePlatformCapacity(); // Initialize platform capacity display
+
+    // Preload music and start playback
+    music.src = shuffledTracks[currentTrackIndex];
+    music.addEventListener('ended', changeTrack);
 });
