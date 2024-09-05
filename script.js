@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Elements for Coin Counter
+    // Elements
     const coinCounter = document.getElementById('coin-counter');
     const spawnRateDisplay = document.getElementById('spawn-rate');
     const platformCapacityDisplay = document.getElementById('platform-capacity');
@@ -13,6 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const changeTrackButton = document.getElementById('change-track-button');
     const music = document.getElementById('background-music');
     const musicCheckbox = document.getElementById('music-checkbox');
+    const scientificNotationCheckbox = document.getElementById('scientific-notation-checkbox');
+    const hardResetButton = document.getElementById('hardResetButton');
+    const confirmationOverlay = document.getElementById('confirmationOverlay');
+    const confirmResetButton = document.getElementById('confirmResetButton');
+    const cancelResetButton = document.getElementById('cancelResetButton');
 
     // Constants and Initial Values
     const maxCoins = 100; // Max capacity of the coin platform
@@ -23,9 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let coinMultiplier = 1; // Initial coin multiplier
     const maxUpgradeLevel = 9; // Maximum upgrade levels
     const baseUpgradeCost = 1e9; // Base cost of the upgrade
-
-    // Platform Capacity
     let currentPlatformCapacity = 100; // Initial platform capacity
+    let spawnIntervalId;
+    let currentTrackIndex = 0;
+    let useScientificNotation = false; // Default is false
 
     // Track list
     const tracks = [
@@ -52,48 +58,98 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     let shuffledTracks = [...tracks]; // Create a copy of the tracks array
-    let currentTrackIndex = 0;
-    let spawnIntervalId;
 
     function formatNumber(number) {
-        if (number < 1e3) return number.toString(); // Less than 1000, no suffix needed
-        if (number >= 1e3 && number < 1e6) return number.toLocaleString(); // Between 1000 and 1e6, use commas
+    // Convert number to a JavaScript Number
+    number = Number(number);
+    console.log(`Number: ${number}`); // Debugging line
 
-        const suffixes = [
-            { value: 1e303, suffix: 'Ce' },
-            { value: 1e300, suffix: 'NoNg' },
-            { value: 1e270, suffix: 'Ng' },
-            { value: 1e243, suffix: 'Og' },
-            { value: 1e213, suffix: 'Sg' },
-            { value: 1e183, suffix: 'sg' },
-            { value: 1e153, suffix: 'Qg' },
-            { value: 1e123, suffix: 'qg' },
-            { value: 1e93, suffix: 'Tg' },
-            { value: 1e63, suffix: 'Vt' },
-            { value: 1e33, suffix: 'De' },
-            { value: 1e30, suffix: 'No' },
-            { value: 1e27, suffix: 'Oc' },
-            { value: 1e24, suffix: 'Sp' },
-            { value: 1e21, suffix: 'Sx' },
-            { value: 1e18, suffix: 'Qn' },
-            { value: 1e15, suffix: 'Qd' },
-            { value: 1e12, suffix: 'T' },
-            { value: 1e9, suffix: 'B' },
-            { value: 1e6, suffix: 'M' },
-        ];
+    // Check for scientific notation setting
+    if (useScientificNotation) {
+        if (number >= 1e6) {
+            return number.toExponential(2);
+        } else if (number >= 1e3) {
+            // Include commas for thousands separators
+            return number.toLocaleString();
+        }
+        return number.toString(); // For smaller numbers, return as is
+    }
 
-        for (const { value, suffix } of suffixes) {
-            if (number >= value) {
-                return (number / value).toFixed(2).replace(/\.00$/, '') + suffix;
-            }
+    // Custom suffixes for large numbers
+    const suffixes = [
+        { value: 1e303, suffix: 'Ce' }, { value: 1e300, suffix: 'NoNg' },
+        { value: 1e297, suffix: 'OcNg' }, { value: 1e294, suffix: 'SpNg' },
+        { value: 1e291, suffix: 'SxNg' }, { value: 1e288, suffix: 'QnNg' },
+        { value: 1e285, suffix: 'QdNg' }, { value: 1e282, suffix: 'TNg' },
+        { value: 1e279, suffix: 'DNg' }, { value: 1e276, suffix: 'UNg' },
+        { value: 1e273, suffix: 'Ng' }, { value: 1e270, suffix: 'NoOg' },
+        { value: 1e267, suffix: 'OcOg' }, { value: 1e264, suffix: 'SpOg' },
+        { value: 1e261, suffix: 'SxOg' }, { value: 1e258, suffix: 'QnOg' },
+        { value: 1e255, suffix: 'QdOg' }, { value: 1e252, suffix: 'TOg' },
+        { value: 1e249, suffix: 'DOg' }, { value: 1e246, suffix: 'UOg' },
+        { value: 1e243, suffix: 'Og' }, { value: 1e240, suffix: 'NoSg' },
+        { value: 1e237, suffix: 'OcSg' }, { value: 1e234, suffix: 'SpSg' },
+        { value: 1e231, suffix: 'SxSg' }, { value: 1e228, suffix: 'QnSg' },
+        { value: 1e225, suffix: 'QdSg' }, { value: 1e222, suffix: 'TSg' },
+        { value: 1e219, suffix: 'DSg' }, { value: 1e216, suffix: 'USg' },
+        { value: 1e213, suffix: 'Sg' }, { value: 1e210, suffix: 'Nosg' },
+        { value: 1e207, suffix: 'Ocsg' }, { value: 1e204, suffix: 'Spsg' },
+        { value: 1e201, suffix: 'Sxsg' }, { value: 1e198, suffix: 'Qnsg' },
+        { value: 1e195, suffix: 'Qdsg' }, { value: 1e192, suffix: 'Tsg' },
+        { value: 1e189, suffix: 'Dsg' }, { value: 1e186, suffix: 'Usg' },
+        { value: 1e183, suffix: 'sg' }, { value: 1e180, suffix: 'NoQg' },
+        { value: 1e177, suffix: 'OcQg' }, { value: 1e174, suffix: 'SpQg' },
+        { value: 1e171, suffix: 'SxQg' }, { value: 1e168, suffix: 'QnQg' },
+        { value: 1e165, suffix: 'QdQg' }, { value: 1e162, suffix: 'TQg' },
+        { value: 1e159, suffix: 'DQg' }, { value: 1e156, suffix: 'UQg' },
+        { value: 1e153, suffix: 'Qg' }, { value: 1e150, suffix: 'Noqg' },
+        { value: 1e147, suffix: 'Ocqg' }, { value: 1e144, suffix: 'Spqg' },
+        { value: 1e141, suffix: 'Sxqg' }, { value: 1e138, suffix: 'Qnqg' },
+        { value: 1e135, suffix: 'Qdqg' }, { value: 1e132, suffix: 'Tqg' },
+        { value: 1e129, suffix: 'Dqg' }, { value: 1e126, suffix: 'Uqg' },
+        { value: 1e123, suffix: 'qg' }, { value: 1e120, suffix: 'NoTg' },
+        { value: 1e117, suffix: 'OcTg' }, { value: 1e114, suffix: 'SpTg' },
+        { value: 1e111, suffix: 'SxTg' }, { value: 1e108, suffix: 'QnTg' },
+        { value: 1e105, suffix: 'QdTg' }, { value: 1e102, suffix: 'TTg' },
+        { value: 1e99, suffix: 'DTg' }, { value: 1e96, suffix: 'UTg' },
+        { value: 1e93, suffix: 'Tg' }, { value: 1e90, suffix: 'NoVt' },
+        { value: 1e87, suffix: 'OcVt' }, { value: 1e84, suffix: 'SpVt' },
+        { value: 1e81, suffix: 'SxVt' }, { value: 1e78, suffix: 'QnVt' },
+        { value: 1e75, suffix: 'QdVt' }, { value: 1e72, suffix: 'TVt' },
+        { value: 1e69, suffix: 'DVt' }, { value: 1e66, suffix: 'UVt' },
+        { value: 1e63, suffix: 'Vt' }, { value: 1e60, suffix: 'NoDe' },
+        { value: 1e57, suffix: 'OcDe' }, { value: 1e54, suffix: 'SpDe' },
+        { value: 1e51, suffix: 'SxDe' }, { value: 1e48, suffix: 'QnDe' },
+        { value: 1e45, suffix: 'QdDe' }, { value: 1e42, suffix: 'TDe' },
+        { value: 1e39, suffix: 'DDe' }, { value: 1e36, suffix: 'UDe' },
+        { value: 1e33, suffix: 'De' }, { value: 1e30, suffix: 'No' },
+        { value: 1e27, suffix: 'Oc' }, { value: 1e24, suffix: 'Sp' },
+        { value: 1e21, suffix: 'Sx' }, { value: 1e18, suffix: 'Qn' },
+        { value: 1e15, suffix: 'Qd' }, { value: 1e12, suffix: 'T' },
+        { value: 1e9, suffix: 'B' }, { value: 1e6, suffix: 'M' }
+    ];
+
+    // Check for scientific notation for very large numbers
+    if (number >= 1e306) {
+        return number.toExponential(2);
+    }
+
+    for (const { value, suffix } of suffixes) {
+        if (number >= value) {
+            let formattedNumber = (number / value).toFixed(2).replace(/\.00$/, '');
+            console.log(`Formatted Number with Suffix: ${formattedNumber}${suffix}`); // Debugging line
+            return formattedNumber + suffix;
         }
     }
+
+    return number.toLocaleString(); // For numbers less than 1e3
+}
 
     function updateCoinCounter() {
         coinCounter.textContent = `Coins: ${formatNumber(coinCount)}`;
     }
 
-     function updatePlatformCapacity() {
+    function updatePlatformCapacity() {
         const coinCountOnPlatform = coinPlatform.children.length;
         platformCapacityDisplay.textContent = `Platform Capacity: ${coinCountOnPlatform}/${currentPlatformCapacity}`;
 
@@ -108,17 +164,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSpawnRate() {
-    clearInterval(spawnIntervalId); // Clear the existing interval
-    // Calculate the spawn interval, ensuring it doesn't go below 0.1s
-    spawnInterval = Math.max(100, 1000 - (upgradeLevel * 100)); 
+        clearInterval(spawnIntervalId); // Clear existing interval
+        spawnInterval = Math.max(100, 1000 - (upgradeLevel * 100)); // Calculate new interval
 
-    // Update the spawn rate display
-    const displaySpawnInterval = (spawnInterval / 1000).toFixed(1);
-    spawnRateDisplay.textContent = `Coin Spawn Rate: 1 per ${displaySpawnInterval}s`;
+        // Update spawn rate display
+        const displaySpawnInterval = (spawnInterval / 1000).toFixed(1);
+        spawnRateDisplay.textContent = `Coin Spawn Rate: 1 per ${displaySpawnInterval}s`;
 
-    // Start the new interval
-    spawnIntervalId = setInterval(spawnCoin, spawnInterval);
-}
+        // Start the new interval
+        spawnIntervalId = setInterval(spawnCoin, spawnInterval);
+    }
 
     function spawnCoin() {
         if (coinPlatform.children.length >= currentPlatformCapacity) {
@@ -178,44 +233,134 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCoinCounter();
         testButton.textContent = `Increase Coin Multi by 10x Compounding [for testing purposes] (x${coinMultiplier})`;
     }
-
+    
     function toggleSettingsMenu() {
-        if (settingsOverlay.style.display === 'none' || settingsOverlay.style.display === '') {
-            settingsOverlay.style.display = 'flex'; // Show the settings menu
-        } else {
-            settingsOverlay.style.display = 'none'; // Hide the settings menu
-        }
+        settingsOverlay.style.display = settingsOverlay.style.display === 'none' || settingsOverlay.style.display === '' ? 'flex' : 'none';
     }
 
-    function changeTrack() {
-        currentTrackIndex = (currentTrackIndex + 1) % shuffledTracks.length;
-        music.src = shuffledTracks[currentTrackIndex];
-        music.play();
+    function closeSettingsMenu() {
+        settingsOverlay.style.display = 'none';
     }
 
     function toggleMusic() {
         if (musicCheckbox.checked) {
-            music.play();
+            music.play(); // Play the music
         } else {
-            music.pause();
+            music.pause(); // Pause the music
         }
     }
 
+    function shuffleTracks() {
+        for (let i = shuffledTracks.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledTracks[i], shuffledTracks[j]] = [shuffledTracks[j], shuffledTracks[i]];
+        }
+        currentTrackIndex = 0; // Reset track index after shuffling
+    }
+
+    function changeTrack() {
+        currentTrackIndex++;
+        if (currentTrackIndex >= shuffledTracks.length) {
+            currentTrackIndex = 0; // Loop back to the first track
+        }
+        music.src = shuffledTracks[currentTrackIndex];
+        music.play(); // Auto-play the next track
+    }
+    
+ function saveGame() {
+        const gameData = {
+            coinCount,
+            spawnRate,
+            upgradeLevel,
+            coinMultiplier,
+            currentPlatformCapacity,
+            currentTrackIndex,
+            useScientificNotation
+        };
+        localStorage.setItem('gameData', JSON.stringify(gameData));
+    }
+
+    function loadGame() {
+        const gameData = JSON.parse(localStorage.getItem('gameData'));
+        if (gameData) {
+            coinCount = gameData.coinCount;
+            spawnRate = gameData.spawnRate;
+            upgradeLevel = gameData.upgradeLevel;
+            coinMultiplier = gameData.coinMultiplier;
+            currentPlatformCapacity = gameData.currentPlatformCapacity;
+            currentTrackIndex = gameData.currentTrackIndex;
+            useScientificNotation = gameData.useScientificNotation;
+
+            updateCoinCounter();
+            updatePlatformCapacity();
+            updateSpawnRate();
+            music.src = shuffledTracks[currentTrackIndex];
+            music.play(); // Resume playing the last track
+        }
+    }
+
+    function showConfirmationOverlay() {
+        confirmationOverlay.style.display = 'flex';
+    }
+
+    function hideConfirmationOverlay() {
+        confirmationOverlay.style.display = 'none';
+    }
+
+    function performHardReset() {
+        // Reset all game data
+        localStorage.removeItem('gameData');
+        coinCount = 0;
+        spawnRate = 1000;
+        upgradeLevel = 0;
+        coinMultiplier = 1;
+        currentPlatformCapacity = 100;
+        currentTrackIndex = 0;
+        useScientificNotation = false;
+
+        // Update UI
+        updateCoinCounter();
+        updatePlatformCapacity();
+        updateSpawnRate();
+        music.src = shuffledTracks[currentTrackIndex];
+        music.play(); // Resume playing the first track
+        hideConfirmationOverlay();
+    }
+
     // Event Listeners
-    spawnRateUpgradeButton.addEventListener('click', handleUpgrade);
-    coinMultiplierUpgradeButton.addEventListener('click', increaseCoinMultiplier);
-    testButton.addEventListener('click', increaseCoinsExponentially);
+    hardResetButton.addEventListener('click', showConfirmationOverlay);
+    confirmResetButton.addEventListener('click', performHardReset);
+    cancelResetButton.addEventListener('click', hideConfirmationOverlay);
+
+    spawnRateUpgradeButton.addEventListener('click', () => {
+        handleUpgrade();
+        saveGame(); // Save game data after upgrading
+    });
+
+    coinMultiplierUpgradeButton.addEventListener('click', () => {
+        increaseCoinMultiplier();
+        saveGame(); // Save game data after increasing multiplier
+    });
+
+    testButton.addEventListener('click', () => {
+        increaseCoinsExponentially();
+        saveGame(); // Save game data after increasing multiplier
+    });
+
     settingsButton.addEventListener('click', toggleSettingsMenu);
-    closeSettingsButton.addEventListener('click', toggleSettingsMenu);
+    closeSettingsButton.addEventListener('click', closeSettingsMenu);
     changeTrackButton.addEventListener('click', changeTrack);
     musicCheckbox.addEventListener('change', toggleMusic);
+    scientificNotationCheckbox.addEventListener('change', () => {
+        useScientificNotation = scientificNotationCheckbox.checked;
+        updateCoinCounter(); // Update the display to reflect the change
+        saveGame(); // Save game data after changing scientific notation setting
+    });
 
     // Initialize
-    updateCoinCounter();
-    updateSpawnRate();
-    updatePlatformCapacity(); // Initialize platform capacity display
-
-    // Preload music and start playback
-    music.src = shuffledTracks[currentTrackIndex];
-    music.addEventListener('ended', changeTrack);
+    loadGame(); // Load game data on initial load
+    updateSpawnRate(); // Set the initial spawn rate
+    shuffleTracks(); // Shuffle tracks on initial load
+    updateCoinCounter(); // Update coin counter display initially
+    updatePlatformCapacity(); // Update platform capacity display initially
 });
