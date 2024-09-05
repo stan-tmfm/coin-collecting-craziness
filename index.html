@@ -15,30 +15,46 @@
         <div id="coin-counter">Coins: 0</div>
         <div id="spawn-rate"> Coin Spawn Rate: 1s</div>
         <div id="platform-capacity">Platform Capacity: 0/100</div>
-        <div class="coin-platform" id="coin-platform">
-            <!-- Coins will be dynamically added here -->
+        <div class="coin-platform" id="coin-platform"> <!-- Coins will be dynamically added here -->
         </div>
         <div class="upgrades">
             <h2>Upgrades</h2>
             <button class="test-button" id="test-button">Increase Coin Multi by 10x Compounding [for testing purposes]</button>
             <button class="upgrade-button" id="spawn-rate-upgrade">Increase Coin Spawn Speed (Cost: 1B Coins)</button>
             <button class="upgrade-button" id="coin-multiplier-upgrade">Placeholder upgrade (Cost: 10 Coins)</button>
-            <button class="upgrade-button" id="magnet-upgrade">Placeholder upgrade which will unlock a cool feature (Cost: 1000 Coins)</button>
+            <button class="upgrade-button" id="magnet-upgrade">Placeholder upgrade which will unlock a cool feature (Cost: 1000 Coins)
         </div>
     </div>
+    
     <!-- Settings Menu -->
-<div id="settings-overlay" class="settings-overlay">
+    <div id="settings-overlay" class="settings-overlay">
     <div class="settings-content">
         <h2>Settings</h2>
         <div class="settings-row">
-            <label><input type="checkbox" id="music-checkbox"> Music - Not enabled by default because it caused issues; you can shuffle the track using the track shuffle button though, there are 20 total songs in the playlist</label>
+            <label>
+                <input type="checkbox" id="music-checkbox"> Music - Not enabled by default because it caused issues; you can shuffle the track using the track shuffle button though, there are 20 total songs in the playlist
+            </label>
             <button id="change-track-button">Shuffle Track</button>
         </div>
-        <label><input type="checkbox" id="scientific-notation-checkbox"> Scientific Notation (nyi)</label>
+        <label>
+            <input type="checkbox" id="scientific-notation-checkbox"> Scientific Notation
+        </label>
         <br><br>
-        <button class="close-settings" id="close-settings">Close</button>
+        <!-- container for the buttons at the bottom of the settings menu -->
+        <div class="settings-button-container">
+            <button class="close-settings" id="close-settings">Close</button>
+            <button id="hardResetButton" class="settings-button">Hard Reset</button>
+        </div>
+        <div id="confirmationOverlay" class="confirmation-overlay">
+            <div class="confirmation-content">
+                <p>Are you sure you want to reset all progress? This action cannot be undone.</p>
+                <button id="confirmResetButton">Yes, Reset</button>
+                <button id="cancelResetButton">Cancel</button>
+            </div>
+        </div>
     </div>
 </div>
+    
     <audio id="background-music" preload="auto">
         <source src="DEAF KEV - Invincible  Glitch Hop  NCS - Copyright Free Music.mp3" type="audio/mpeg">
         <source src="Different Heaven & EH!DE - My Heart  Drumstep  NCS - Copyright Free Music.mp3" type="audio/mpeg">
