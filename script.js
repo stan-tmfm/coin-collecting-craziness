@@ -60,23 +60,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let shuffledTracks = [...tracks]; // Create a copy of the tracks array
 
     function formatNumber(number) {
-    // Convert number to a JavaScript Number
-    number = Number(number);
-    console.log(`Number: ${number}`); // Debugging line
+        // Convert number to a JavaScript Number
+        number = Number(number);
 
-    // Check for scientific notation setting
-    if (useScientificNotation) {
-        if (number >= 1e6) {
-            return number.toExponential(2);
-        } else if (number >= 1e3) {
-            // Include commas for thousands separators
-            return number.toLocaleString();
+        // Check for scientific notation setting
+        if (useScientificNotation) {
+            if (number >= 1e6) {
+                return number.toExponential(2);
+            } else if (number >= 1e3) {
+                // Include commas for thousands separators
+                return number.toLocaleString();
+            }
+            return number.toString(); // For smaller numbers, return as is
         }
-        return number.toString(); // For smaller numbers, return as is
-    }
 
-    // Custom suffixes for large numbers
-    const suffixes = [
+        // Custom suffixes for large numbers
+        const suffixes = [
         { value: 1e303, suffix: 'Ce' }, { value: 1e300, suffix: 'NoNg' },
         { value: 1e297, suffix: 'OcNg' }, { value: 1e294, suffix: 'SpNg' },
         { value: 1e291, suffix: 'SxNg' }, { value: 1e288, suffix: 'QnNg' },
@@ -129,21 +128,15 @@ document.addEventListener('DOMContentLoaded', () => {
         { value: 1e9, suffix: 'B' }, { value: 1e6, suffix: 'M' }
     ];
 
-    // Check for scientific notation for very large numbers
-    if (number >= 1e306) {
-        return number.toExponential(2);
-    }
-
-    for (const { value, suffix } of suffixes) {
-        if (number >= value) {
-            let formattedNumber = (number / value).toFixed(2).replace(/\.00$/, '');
-            console.log(`Formatted Number with Suffix: ${formattedNumber}${suffix}`); // Debugging line
-            return formattedNumber + suffix;
+        for (const { value, suffix } of suffixes) {
+            if (number >= value) {
+                let formattedNumber = (number / value).toFixed(2).replace(/\.00$/, '');
+                return formattedNumber + suffix;
+            }
         }
-    }
 
-    return number.toLocaleString(); // For numbers less than 1e3
-}
+        return number.toLocaleString(); // For numbers less than 1e3
+    }
 
     function updateCoinCounter() {
         coinCounter.textContent = `Coins: ${formatNumber(coinCount)}`;
@@ -175,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         spawnIntervalId = setInterval(spawnCoin, spawnInterval);
     }
 
-    function spawnCoin() {
+ function spawnCoin() {
         if (coinPlatform.children.length >= currentPlatformCapacity) {
             console.log('Coin platform is full.');
             return; // Stop spawning if platform is full
@@ -189,14 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const y = Math.random() * (coinPlatform.clientHeight - 30);
         coin.style.left = `${x}px`;
         coin.style.top = `${y}px`;
-
-        // Handle coin hover event
-        coin.addEventListener('mouseover', () => {
-            coin.remove();
-            coinCount += coinMultiplier; // Apply multiplier to coin gain
-            updateCoinCounter();
-            updatePlatformCapacity(); // Update platform capacity display
-        });
 
         coinPlatform.appendChild(coin);
         updatePlatformCapacity(); // Update platform capacity display
@@ -218,8 +203,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function increaseCoinMultiplier() {
-        if (coinCount >= 1e6) {
-            coinCount -= 1e6;
+        if (coinCount >= 1e9) {
+            coinCount -= 1e9;
             coinMultiplier *= 10; // Increase coin multiplier by 10x
             updateCoinCounter();
             coinMultiplierUpgradeButton.textContent = `Increase Coin Multi by 10x Compounding [for testing purposes] (x${coinMultiplier})`;
@@ -331,6 +316,15 @@ document.addEventListener('DOMContentLoaded', () => {
     hardResetButton.addEventListener('click', showConfirmationOverlay);
     confirmResetButton.addEventListener('click', performHardReset);
     cancelResetButton.addEventListener('click', hideConfirmationOverlay);
+
+    coinPlatform.addEventListener('mouseover', (event) => {
+    if (event.target.classList.contains('coin')) {
+        event.target.remove();
+        coinCount += coinMultiplier; // Apply multiplier to coin gain
+        updateCoinCounter();
+        updatePlatformCapacity(); // Update platform capacity display
+    }
+});
 
     spawnRateUpgradeButton.addEventListener('click', () => {
         handleUpgrade();
