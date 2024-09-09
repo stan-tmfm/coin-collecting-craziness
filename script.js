@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmationOverlay = document.getElementById('confirmationOverlay');
     const confirmResetButton = document.getElementById('confirmResetButton');
     const cancelResetButton = document.getElementById('cancelResetButton');
+    const coinValueUpgradeButton = document.getElementById('coin-value-upgrade-1');
 
     // Constants and Initial Values
     const maxCoins = 100; // Max capacity of the coin platform
@@ -26,8 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let spawnInterval = 1000 / spawnRate; // Interval time in milliseconds
     let upgradeLevel = 0; // Level of the spawn rate upgrade
     let coinMultiplier = 1; // Initial coin multiplier
-    const maxUpgradeLevel = 9; // Maximum upgrade levels
-    const baseUpgradeCost = 1e9; // Base cost of the upgrade
+    let coinValueIncrease = 1;
+    let coinValue = 1; // Initial coin value
+    let coinValueLevel = 0; // Current level of the Coin Value I upgrade
+    const maxCoinValueLevel = 9; // Max level for this upgrade
+    const baseCoinValue = 1; // Base coin value for getCoinValue()
+    const baseCoinValueCost = 10; // Base cost of the Coin Value I upgrade
+    const baseSpawnRateUpgradeCost = 1e9; // Base cost of the spawn rate upgrade
     let currentPlatformCapacity = 100; // Initial platform capacity
     let spawnIntervalId;
     let currentTrackIndex = 0;
@@ -142,6 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
         coinCounter.textContent = `Coins: ${formatNumber(coinCount)}`;
     }
 
+    function createCoin() {
+    const coin = document.createElement('div');
+    coin.className = 'coin';
+    coin.dataset.value = coinValue; // Set the initial coin value
+    coinPlatform.appendChild(coin);
+}
+
     function updatePlatformCapacity() {
         const coinCountOnPlatform = coinPlatform.children.length;
         platformCapacityDisplay.textContent = `Platform Capacity: ${coinCountOnPlatform}/${currentPlatformCapacity}`;
@@ -168,39 +181,63 @@ document.addEventListener('DOMContentLoaded', () => {
         spawnIntervalId = setInterval(spawnCoin, spawnInterval);
     }
 
- function spawnCoin() {
-        if (coinPlatform.children.length >= currentPlatformCapacity) {
-            console.log('Coin platform is full.');
-            return; // Stop spawning if platform is full
-        }
-
-        const coin = document.createElement('div');
-        coin.classList.add('coin');
-
-        // Random position within the platform
-        const x = Math.random() * (coinPlatform.clientWidth - 30);
-        const y = Math.random() * (coinPlatform.clientHeight - 30);
-        coin.style.left = `${x}px`;
-        coin.style.top = `${y}px`;
-
-        coinPlatform.appendChild(coin);
-        updatePlatformCapacity(); // Update platform capacity display
+    function spawnCoin() {
+    if (coinPlatform.children.length >= currentPlatformCapacity) {
+        console.log('Coin platform is full.');
+        return; // Stop spawning if platform is full
     }
 
-    function handleUpgrade() {
-        // Calculate the cost with scaling factor
-        const upgradeCost = baseUpgradeCost * Math.pow(2, upgradeLevel); // Cost scales by 2x per level
+    const coin = document.createElement('div');
+    coin.classList.add('coin');
 
-        if (coinCount >= upgradeCost && upgradeLevel < maxUpgradeLevel) {
-            coinCount -= upgradeCost;
-            upgradeLevel++;
-            updateSpawnRate();
-            updateCoinCounter();
-            spawnRateUpgradeButton.textContent = `Increase Coin Spawn Speed (Cost: ${formatNumber(baseUpgradeCost * Math.pow(2, upgradeLevel))} Coins)`;
+    // Random position within the platform
+    const x = Math.random() * (coinPlatform.clientWidth - 30);
+    const y = Math.random() * (coinPlatform.clientHeight - 30);
+    coin.style.left = `${x}px`;
+    coin.style.top = `${y}px`;
+    coin.dataset.value = getCoinValue(); // Use updated coin value
+
+    coinPlatform.appendChild(coin);
+    updatePlatformCapacity(); // Update platform capacity display
+}
+
+    function handleCoinValueUpgrade() {
+    if (coinValueLevel < maxCoinValueLevel) {
+        const upgradeCost = calculateCoinValueUpgradeCost(coinValueLevel + 1);
+
+        if (coinCount >= upgradeCost) {
+            coinCount -= upgradeCost; // Deduct the cost
+            coinValue += 1; // Increase coin value by +1 per level
+            coinValueLevel++; // Increase upgrade level
+            updateCoinCounter(); // Update coin counter display
+
+            // Apply the new coin value to all existing coins
+            applyCoinValueToAllCoins();
+
+            // Update button text for the next upgrade level
+            if (coinValueLevel < maxCoinValueLevel) {
+                const nextCost = calculateCoinValueUpgradeCost(coinValueLevel + 1);
+                coinValueUpgradeButton.textContent = `Increase Coin Value I (Level ${coinValueLevel + 1}) (Cost: ${formatNumber(nextCost)} Coins)`;
+            } else {
+                // Max level reached
+                coinValueUpgradeButton.textContent = `Coin Value I Maxed (Level ${coinValueLevel})`;
+                coinValueUpgradeButton.disabled = true; // Disable button when max level is reached
+            }
         } else {
-            alert("Not enough coins or maximum level reached.");
+            alert('Not enough coins for this upgrade!');
         }
     }
+    saveGame();
+}
+
+    function applyCoinValueToAllCoins() {
+    // Iterate over all coins on the platform and update their value
+    const coins = coinPlatform.getElementsByClassName('coin');
+    for (const coin of coins) {
+        // Update the value attribute of each coin
+        coin.dataset.value = coinValue; // Set the new coin value
+    }
+}
 
     function increaseCoinMultiplier() {
         if (coinCount >= 1e9) {
@@ -218,6 +255,31 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCoinCounter();
         testButton.textContent = `Increase Coin Multi by 10x Compounding [for testing purposes] (x${coinMultiplier})`;
     }
+
+    function applyCoinValueUpgrade(level) {
+        const upgrade = upgrades.coinValue[level - 1];
+        if (coinCount >= upgrade.costScaling(level)) {
+            coinCount -= upgrade.costScaling(level);
+            coinValue += level; // Increase coin value by level
+            updateCoinCounter();
+            saveGame();
+            // Update button text if needed
+            coinValueUpgradeButton.textContent = `Increase Coin Value I (Level ${level}) (Cost: ${formatNumber(upgrades.coinValue[level - 1].costScaling(level))} Coins)`;
+        } else {
+            alert("Not enough coins to purchase this upgrade.");
+        }
+    }
+
+    function getCoinValue() {
+    return coinValue;
+}
+
+
+    // Function to calculate the upgrade cost based on level
+    function calculateCoinValueUpgradeCost(level) {
+        const cost = (10 + 3 * (level - 1)) * Math.pow(1.2, level - 1);
+        return Math.floor(cost); // Return the floored cost
+    }
     
     function toggleSettingsMenu() {
         settingsOverlay.style.display = settingsOverlay.style.display === 'none' || settingsOverlay.style.display === '' ? 'flex' : 'none';
@@ -225,6 +287,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeSettingsMenu() {
         settingsOverlay.style.display = 'none';
+    }
+
+     // Function to close settings menu when clicking outside of it
+    function handleClickOutside(event) {
+        if (settingsOverlay.style.display === 'flex' && !event.target.closest('.settings-content') && !event.target.closest('#settings-button')) {
+            closeSettingsMenu();
+        }
+    }
+
+    // Function to close settings menu with Escape key
+    function handleEscapeKey(event) {
+        if (event.key === 'Escape') {
+            closeSettingsMenu();
+        }
     }
 
     function toggleMusic() {
@@ -252,37 +328,47 @@ document.addEventListener('DOMContentLoaded', () => {
         music.play(); // Auto-play the next track
     }
     
- function saveGame() {
-        const gameData = {
-            coinCount,
-            spawnRate,
-            upgradeLevel,
-            coinMultiplier,
-            currentPlatformCapacity,
-            currentTrackIndex,
-            useScientificNotation
-        };
-        localStorage.setItem('gameData', JSON.stringify(gameData));
-    }
+    function saveGame() {
+    const gameData = {
+        coinCount,
+        spawnRate,
+        upgradeLevel,
+        coinMultiplier,
+        coinValue,
+        currentPlatformCapacity,
+        currentTrackIndex,
+        useScientificNotation,
+        coinValueLevel
+    };
+    localStorage.setItem('gameData', JSON.stringify(gameData));
+}
 
     function loadGame() {
-        const gameData = JSON.parse(localStorage.getItem('gameData'));
-        if (gameData) {
-            coinCount = gameData.coinCount;
-            spawnRate = gameData.spawnRate;
-            upgradeLevel = gameData.upgradeLevel;
-            coinMultiplier = gameData.coinMultiplier;
-            currentPlatformCapacity = gameData.currentPlatformCapacity;
-            currentTrackIndex = gameData.currentTrackIndex;
-            useScientificNotation = gameData.useScientificNotation;
+    const gameData = JSON.parse(localStorage.getItem('gameData'));
+    if (gameData) {
+        coinCount = gameData.coinCount || 0;
+        spawnRate = gameData.spawnRate || 1000;
+        upgradeLevel = gameData.upgradeLevel || 0;
+        coinMultiplier = gameData.coinMultiplier || 1;
+        coinValue = gameData.coinValue || 1;
+        currentPlatformCapacity = gameData.currentPlatformCapacity || 100;
+        currentTrackIndex = gameData.currentTrackIndex || 0;
+        useScientificNotation = gameData.useScientificNotation || false;
 
-            updateCoinCounter();
-            updatePlatformCapacity();
-            updateSpawnRate();
-            music.src = shuffledTracks[currentTrackIndex];
-            music.play(); // Resume playing the last track
-        }
+        // Load the saved coin value upgrade level
+        coinValueLevel = gameData.coinValueLevel || 0;
+        coinValue = 1 + coinValueLevel; // Ensure that coinValue is updated based on the level
+
+        updateCoinCounter();
+        updatePlatformCapacity();
+        updateSpawnRate();
+        music.src = shuffledTracks[currentTrackIndex];
+        music.play(); // Resume playing the last track
+    } else {
+        console.log('No saved game data found.');
     }
+}
+
 
     function showConfirmationOverlay() {
         confirmationOverlay.style.display = 'flex';
@@ -299,6 +385,8 @@ document.addEventListener('DOMContentLoaded', () => {
         spawnRate = 1000;
         upgradeLevel = 0;
         coinMultiplier = 1;
+        coinValueLevel = 0;
+        coinValue = 1;
         currentPlatformCapacity = 100;
         currentTrackIndex = 0;
         useScientificNotation = false;
@@ -319,10 +407,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     coinPlatform.addEventListener('mouseover', (event) => {
     if (event.target.classList.contains('coin')) {
+        const coinValue = Number(event.target.dataset.value);
         event.target.remove();
-        coinCount += coinMultiplier; // Apply multiplier to coin gain
+        coinCount += coinValue * coinMultiplier; // Apply multiplier to coin gain
         updateCoinCounter();
         updatePlatformCapacity(); // Update platform capacity display
+        saveGame();
     }
 });
 
@@ -341,8 +431,11 @@ document.addEventListener('DOMContentLoaded', () => {
         saveGame(); // Save game data after increasing multiplier
     });
 
+    coinValueUpgradeButton.addEventListener('click', handleCoinValueUpgrade);
     settingsButton.addEventListener('click', toggleSettingsMenu);
     closeSettingsButton.addEventListener('click', closeSettingsMenu);
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleEscapeKey);
     changeTrackButton.addEventListener('click', changeTrack);
     musicCheckbox.addEventListener('change', toggleMusic);
     scientificNotationCheckbox.addEventListener('change', () => {
