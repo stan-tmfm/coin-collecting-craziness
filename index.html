@@ -3,82 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Play Coin Collecting Craziness - Created by Stan - In very early development currently.">
-    <title>Coin Collecting Craziness</title>
-    <link rel="icon" href="https://t4.ftcdn.net/jpg/07/83/54/05/240_F_783540572_6Ic9Cut7lvlvvPjWXV8YblexY1Jd4Ywm.png">
-    <link rel="stylesheet" href="styles.css">
+    <title>Coin Collecting Cove</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <link rel="icon" href="Images/coin.png" type="image/x-icon"/> 
 </head>
 <body>
-    <div class="game-container">
-        <br><h1 id="ccc">Coin Collecting Craziness</h1>
-        <button id="settings-button">Settings</button>
-        <div id="coin-counter">Coins: 0</div>
-        <div id="spawn-rate"> Coin Spawn Rate: 1s</div>
-        <div id="platform-capacity">Platform Capacity: 0/100</div>
-        <div class="coin-platform" id="coin-platform"> <!-- Coins will be dynamically added here -->
+    <div class="background-container"></div>
+    
+    <!-- Wrapped title and save menu in container -->
+    <div class="menu-container">
+        <h1 class="title-overlay">
+            <!-- Spells out "Coin Collecting Cove but with the o's replaced with coins -->
+            C<img src="Images/coin.png" alt="o" class="coin-image">in‎ ‎ C<img src="Images/coin.png" alt="o" class="coin-image">llecting‎ ‎ C<img src="Images/coin.png" alt="o" class="coin-image">ve
+        </h1>
+        <div class="save-menu"></div>
+    </div>
+
+    <button class="manage-saves-btn">Manage Save Slots</button>
+
+    <div class="cinematic-overlay">
+        <div class="cinematic-bars">
+            <div class="top-bar"></div>
+            <div class="click-prompt">Click to continue</div>
+            <div class="bottom-bar"></div>
         </div>
-        <div class="upgrades">
-            <h2>Upgrades</h2>
-            <button class="test-button" id="test-button">Increase Coin Multi by 10x Compounding [for testing purposes]</button>
-            <button class="upgrade-button" id="coin-value-upgrade-1">Coin Value I (Cost: 10 Coins)</button>
-            <button class="upgrade-button" id="spawn-rate-upgrade">Increase Coin Spawn Speed (Cost: 1B Coins)</button>
-            <button class="upgrade-button" id="coin-multiplier-upgrade">Placeholder upgrade (Cost: 10 Coins)</button>
-            <button class="upgrade-button" id="magnet-upgrade">Placeholder upgrade which will unlock a cool feature (Cost: 1000 Coins)
+        <div class="slideshow-container">
+            <div class="slide active">
+                <p class="lore-text"></p>
+            </div>
+        </div>
+        <button class="continue-btn">Continue</button>
+    </div>
+
+    <audio id="wind-sound" loop>
+        <source src="Sounds/wind_ambience.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="coin-sound" src="Sounds/coin_pickup.mp3"></audio>
+    <audio id="special-coin-sound">
+      <source src="Sounds/special_coin_pickup.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="game-background"></div>
+
+    <!-- Game Screen -->
+    <div class="game-screen" style="display: none;">
+    <div class="coin-counter">Coins: 0 <span class="coin-boost-indicator"></span></div>
+    <div class="xp-container" style="display: none;">
+        <div class="xp-bar">
+            <div class="xp-progress"></div>
+            <div class="xp-info">Level <span class="xp-level">0</span> - <span class="xp-current">0</span>/<span class="xp-needed">10</span> <span class="xp-boost-indicator"></span></div>
         </div>
     </div>
-    
-    <!-- Settings Menu -->
-    <div id="settings-overlay" class="settings-overlay">
+    <div class="beach-container"></div>
+    <!-- Settings Button -->
+    <button class="settings-btn">⚙️ Settings</button>
+    <div class="goal-message"></div>
+    <button class="merchant-btn" style="display: none;">Visit Merchant</button>
+</div>
+
+    <!-- Merchant Modal -->
+    <div class="merchant-modal">
+    <div class="merchant-content">
+      <h2>Magnificent Merchant</h2>
+      <div class="merchant-scrollable">
+        <div class="current-effects"></div>
+        <div class="upgrades-container"></div>
+      </div>
+      <div class="merchant-footer">
+        <div class="balance-display"><img src="Images/coin.png" alt="Coin image" class="coin-icon">Your Coins: <span id="merchant-coin-count">0</span></div>
+          <button class="talk-to-merchant-btn">🗨️ Talk to Merchant</button>
+          <button class="close-merchant-btn">Leave Shop</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+<div class="settings-modal">
     <div class="settings-content">
         <h2>Settings</h2>
-        <div class="settings-row">
-            <label>
-                <input type="checkbox" id="music-checkbox"> Music - Not enabled by default because it caused issues; you can shuffle the track using the track shuffle button though, there are 20 total songs in the playlist
-            </label>
-            <button id="change-track-button">Shuffle Track</button>
-        </div>
-        <label>
-            <input type="checkbox" id="scientific-notation-checkbox"> Scientific Notation
-        </label>
-        <br><br>
-        <!-- container for the buttons at the bottom of the settings menu -->
-        <div class="settings-button-container">
-            <button class="close-settings" id="close-settings">Close</button>
-            <button id="hardResetButton" class="settings-button">Hard Reset</button>
-        </div>
-        <div id="confirmationOverlay" class="confirmation-overlay">
-            <div class="confirmation-content">
-                <p>Are you sure you want to reset all progress? This action cannot be undone.</p>
-                <button id="confirmResetButton">Yes, Reset</button>
-                <button id="cancelResetButton">Cancel</button>
+        <div class="music-controls">
+            <div id="now-playing">🎵 Now Playing - </div>
+            <div class="playback-controls">
+                <button class="music-control prev-btn">⏮</button>
+                <button class="music-control shuffle-btn">🔀 Shuffle</button>
+                <button class="music-control next-btn">⏭</button>
             </div>
+        </div>
+        <!-- Name Change Section (initially hidden) -->
+        <div class="name-change-section">
+            <label for="player-name-input">Change Name:</label>
+            <input type="text" id="player-name-input" placeholder="Enter new name">
+            <button id="change-name-btn">Save</button>
+        </div>
+        <!-- Coin Capacity Slider -->
+        <div class="setting-item">
+            <label>Maximum Coin Capacity (lower number = less potential lag): <span id="coinCapacityValue">2500</span></label>
+            <input type="range" id="coinCapacitySlider" min="1000" max="10000" step="100" value="2500">
+            <div class="slider-labels">
+                <span>1000</span>
+                <span>10000</span>
+            </div>
+        </div>
+        <div class="settings-buttons">
+            <button id="music-toggle" class="toggle-btn">Music: ON</button>
+			<button id="notation-toggle" class="toggle-btn">Notation: Standard
+            <button class="close-settings-btn">Close</button>
+</div>
         </div>
     </div>
 </div>
-    
-    <audio id="background-music" preload="auto">
-        <source src="DEAF KEV - Invincible  Glitch Hop  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Different Heaven & EH!DE - My Heart  Drumstep  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Elektronomia - Sky High  Progressive House  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Disfigure - Blank  Melodic Dubstep  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Different Heaven - Nekozilla  Electro  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Jim Yosef - Firefly  Progressive House  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Desmeon - Hellcat  Drumstep  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="JPB - High  Trap  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="K-391 - Earth  Drumstep  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Jim Yosef & Anna Yvette - Linked  House  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="LFZ - Popsicle  House  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Jim Yosef - Eclipse  House  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Electro-Light - Symbolism  Trap  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Cartoon, Jéja - On & On (feat. Daniel Levi)  Electronic Pop  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Julius Dreisig & Zeus X Crona - Invisible  Trap  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Killercats - Tell Me (feat. Alex Skrindo)  Future Bass  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Distrion & Alex Skrindo - Entropy  House  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Distrion & Electro-Light - Rubik  House  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Lensko - Lets Go!  House  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-        <source src="Kovan & Electro-Light - Skyline  House  NCS - Copyright Free Music.mp3" type="audio/mpeg">
-    </audio>
 
     <script src="script.js"></script>
+    <script>
+        // Check if running on GitHub Pages
+        const isGitHubPages = window.location.hostname === 'stan-tmfm.github.io';
+
+        // Fix coin.png path if on GitHub Pages
+        if (isGitHubPages) {
+            const coinImages = document.querySelectorAll('img[src="Images/coin.png"]');
+            coinImages.forEach(img => {
+                img.src = '/coin-collecting-cove/Images/coin.png';
+            });
+        }
+    </script>
 </body>
 </html>
